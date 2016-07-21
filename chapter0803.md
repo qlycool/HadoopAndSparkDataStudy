@@ -5,9 +5,10 @@
 
 同时，由于设计的目标不一样，Hive目前还不支持事务；不能对表数据进行修改（不能更新、删除、插入；只能通过文件追加数据、重新导入数据）；不能对列建立索引（但是Hive支持索引的建立，但是不能提高Hive的查询速度。如果你想提高Hive的查询速度，请学习Hive的分区、桶的应用）。
 
-![image](150518111851961.jpg)
+![image](images/8/150518111851961.jpg)
 
-![image](p28850520.jpg)
+
+![image](images/8/p28850520.jpg)
 
 ### 1主要分为以下几个部分：
 
@@ -123,8 +124,9 @@ mysql>
 Hive中所有的数据都存储在HDFS中，存储结构主要包括数据库、文件、表和视图。 默认路径在HDFS的/user/hive/warehouse目录下Hive中包含以下数据模型：Table内部表，External Table外部表，Partition分区，Bucket桶。Hive默认可以直接加载文本文件，还支持sequence file 、RCFile。其次，Hive 中所有的数据都存储在 HDFS 中，Hive 中包含以下数据模型：Table，External Table，Partition，Bucket。
 ### 1）Hive数据库
 
-类似传统数据库的DataBase，在第三方数据库里实际是一张表。
+Hive中的数据库的概念本质上仅仅是表的一个目录或者命名空间.然而,对于具有很多组和用户的大集群来说,这是非常有用的,因为这样可以避免命名冲突.通常会使用数据库来将生产表组织成逻辑组.
 
+如果用户没有显式指定数据库,那么将会使用默认的数据库default.
 ```
 简单示例命令行 
 hive > create database test_database;
@@ -132,12 +134,73 @@ hive> show databases;
 OK
 default
 test_database
+```
+
+如果数据库finacials已经存在的话,那么将会抛出一个错误信息,使用如下语句可以避免在这种情况下抛出错误信息:
 
 ```
+0: jdbc:hive2://localhost:10000/default> create database if not exists fincials;
+```
+如果数据库非常多的话,那么可以使用正则表达式匹配来筛选出需要的数据库表名
+
+```
+0: jdbc:hive2://localhost:10000/default> show databases like 'd.*';
+OK
++----------------+--+
+| database_name  |
++----------------+--+
+| default        |
++----------------+--+
+1 row selected (0.052 seconds)
+
+```
+Hive会为每个数据创建一个目录,数据库中的表将会以这个数据库目录的子目录形式存储.有一个例外就是default数据库中的表,因为这个数据库本身没有自已的目录.当我们创建数据库financials时,Hive将会对应地创建一个目录/user/hive/warehouse/financials.db.这里请注意,数据库的文件目录名是以.db结尾的.
+
+```
+hadoop@hadoopmaster:~$ hdfs dfs -ls /user/hive/warehouse
+Found 4 items
+drwxrwxr-x   - hadoop supergroup          0 2016-07-20 17:25 /user/hive/warehouse/employees
+drwxrwxr-x   - hadoop supergroup          0 2016-07-21 12:53 /user/hive/warehouse/fincials.db
+drwxrwxr-x   - hadoop supergroup          0 2016-07-20 09:50 /user/hive/warehouse/t_hive
+drwxrwxr-x   - hadoop supergroup          0 2016-07-20 09:54 /user/hive/warehouse/t_hive2
+```
+
+用户可以通过如下命令来修改这个默认的位置
+
+```
+0: jdbc:hive2://localhost:10000/default> create database financials2
+. . . . . . . . . . . . . . . . . . . .> location '/user/hive/warehouse/fincials2.db';
+OK
+No rows affected (0.053 seconds)
+
+```
+基本的数据库操作
+
+```
+0: jdbc:hive2://localhost:10000/default> show databases;
+OK
++----------------+--+
+| database_name  |
++----------------+--+
+| default        |
+| financials2    |
+| fincials       |
++----------------+--+
+3 rows selected (0.029 seconds)
+0: jdbc:hive2://localhost:10000/default> use fincials;
+OK
+No rows affected (0.041 seconds)
+0: jdbc:hive2://localhost:10000/default> drop database if exists financials2;
+OK
+No rows affected (0.238 seconds)
+0: jdbc:hive2://localhost:10000/default> 
+
+```
+
 ### 2）内部表
 Hive的内部表与数据库中的Table在概念上是类似。每一个Table在Hive中都有一个相应的目录存储数据。
 
-例如一个表pvs，它在HDFS中的路径为/wh/pvs，其中wh是在hive-site.xml中由${hive.metastore.warehouse.dir} 指定的数据仓库的目录，所有的Table数据（不包括External Table）都保存在这个目录中。删除表时，元数据与数据都会被删除。
+例如一个表pvs，它在HDFS中的路径为/warehouse/pvs，其中wh是在hive-site.xml中由${hive.metastore.warehouse.dir} 指定的数据仓库的目录，所有的Table数据（不包括External Table）都保存在这个目录中。删除表时，元数据与数据都会被删除。
 
 内部表简单示例：
 
@@ -163,7 +226,7 @@ hive> load data local inpath '/tmp/load.txt' into table test_inner_table;
 hive> select * from test_inner_table;
 hive> select count(*) from test_inner_table;
 ```
-Hive 中的 Table 和数据库中的 Table 在概念上是类似的，每一个 Table 在 Hive 中都有一个相应的目录存储数据。例如，一个表 pvs，它在 HDFS 中的路径为：/wh/pvs，其中，wh 是在 hive-site.xml 中由 ${hive.metastore.warehouse.dir} 指定的数据仓库的目录，所有的 Table 数据（不包括 External Table）都保存在这个目录中。
+Hive 中的 Table 和数据库中的 Table 在概念上是类似的，每一个 Table 在 Hive 中都有一个相应的目录存储数据。例如，一个表 pvs，它在 HDFS 中的路径为：/warehouse/pvs，其中，warehouse 是在 hive-site.xml 中由 ${hive.metastore.warehouse.dir} 指定的数据仓库的目录，所有的 Table 数据（不包括 External Table）都保存在这个目录中。
 
 ###3）外部表
 外部表指向已经在HDFS中存在的数据，可以创建Partition。它和内部表在元数据的组织上是相同的，而实际数据的存储则有较大的差异。

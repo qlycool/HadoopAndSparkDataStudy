@@ -1,5 +1,5 @@
-> 本书来源：[开源书籍：大数据实验手册](https://github.com/chu888chu888) (by [楚广明](https://github.com/chu888chu888))<br>
-> 报名参与：*Star/fork* [GitHub 仓库](https://github.com/chu888chu888) 并发送 *Pull Request* <br>
+> 本书来源：[开源书籍：大数据实验手册](https://github.com/chu888chu888/HadoopAndSparkDataStudy) (by [楚广明](https://github.com/chu888chu888/HadoopAndSparkDataStudy))<br>
+> 报名参与：*Star/fork* [GitHub 仓库](https://github.com/chu888chu888/HadoopAndSparkDataStudy) 并发送 *Pull Request* <br>
 > 关注我们：[扫描二维码](#follow) 关注 [@楚广明](http://weibo.com/chu888chu888) 微博和微信公众号<br>
 > 赞助我们：[赞助 8.99￥](#donate)，[更多原创开源书籍](#more)期待您的支持 ^o^ <br>
 
@@ -16,10 +16,8 @@ v 0.1
 ## 介绍
 
 - 项目首页：<https://github.com/chu888chu888>
-- 代码仓库：<https://github.com/chu888chu888>
+- 代码仓库：<https://github.com/chu888chu888/HadoopAndSparkDataStudy>
 - 在线阅读：<https://chu888chu888.gitbooks.io/hadoopstudy/content/>
-
-    更多背景和计划请参考：[前言](zh/preface/01-chapter1.markdown)。
 
 ### 纠错
 
@@ -41,4 +39,3 @@ v 0.1
  <span id="more"></span>
 ### 更多原创开源书籍
 
-Test
