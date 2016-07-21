@@ -229,6 +229,7 @@ hive> select count(*) from test_inner_table;
 Hive 中的 Table 和数据库中的 Table 在概念上是类似的，每一个 Table 在 Hive 中都有一个相应的目录存储数据。例如，一个表 pvs，它在 HDFS 中的路径为：/warehouse/pvs，其中，warehouse 是在 hive-site.xml 中由 ${hive.metastore.warehouse.dir} 指定的数据仓库的目录，所有的 Table 数据（不包括 External Table）都保存在这个目录中。
 
 ###3）外部表
+
 外部表指向已经在HDFS中存在的数据，可以创建Partition。它和内部表在元数据的组织上是相同的，而实际数据的存储则有较大的差异。
 
 内部表的创建过程和数据加载过程这两个过程可以分别独立完成，也可以在同一个语句中完成，在加载数据的过程中，实际数据会被移动到数据仓库目录中；之后对数据对访问将会直接在数据仓库目录中完成。删除表时，表中的数据和元数据将会被同时删除。而外部表只有一个过程，加载数据和创建表同时完成（CREATE EXTERNAL TABLE ……LOCATION），实际数据是存储在LOCATION后面指定的 HDFS 路径中，并不会移动到数据仓库目录中。当删除一个External Table时，仅删除该链接。
@@ -257,15 +258,27 @@ hive> select * from test_external_table;
 hive> select count(*) from test_external_table;
 ```
 
-###4）分区
+###4）分区表
+
+数据分区的概念存在已久.其可以有多种形式,但是通常使用分区来水平分散压力,将数据从物理上转移到和使用最频繁的用户更近的地方,以及实现其他目的.
+
+Hive中有分区表的概念.我们可以看到分区表具有重要的性能优势,而且分区表还可以将数据以一种符合逻辑的方式进行组织,比如分层存储.
+
+
 Partition对应于数据库中的Partition列的密集索引，但是Hive中Partition的组织方式和数据库中的很不相同。在Hive中，表中的一个Partition对应于表下的一个目录，所有的Partition的数据都存储在对应的目录中。
 
-例如pvs表中包含ds和city两个Partition，则对应于ds = 20090801, ctry = US 的HDFS子目录为/wh/pvs/ds=20090801/ctry=US；对应于 ds = 20090801, ctry = CA 的HDFS子目录为/wh/pvs/ds=20090801/ctry=CA。
+例如logs表中包含ds和city两个Partition，则对应于ds = 20090801, ctry = US 的HDFS子目录为/wh/pvs/ds=20090801/ctry=US；对应于 ds = 20090801, ctry = CA 的HDFS子目录为/wh/pvs/ds=20090801/ctry=CA。
 
 分区表简单示例：
 
 ```
-hive> create table logs(ts bigint,line string) partitioned by(dt string,country string) row format delimited fields terminated by '\t' lines terminated by '\n';
+hive> create table logs(ts bigint,line string) partitioned by(dt string,country string) row format delimited fields terminated by '$' lines terminated by '\n';
+
+data.txt内容:
+hadoop@hadoopmaster:/tmp$ more data1.txt
+1$1
+2$3
+3$4
 
 加载数据：
 hive> load data local inpath '/tmp/data.txt' into table logs partition(dt='2015-01-01',country='zh');
@@ -274,24 +287,22 @@ hive> load data local inpath '/tmp/data.txt' into table logs partition(dt='2015-
 
 
 查看数据：
-hive> select * from logs;
+0: jdbc:hive2://localhost:10000/default> select * from logs;
 OK
-NULL	dddd	2015-01-01	zh
-NULL	ddd	2015-01-01	zh
-NULL	ddd	2015-01-01	zh
-NULL	ddd	2015-01-01	zh
-NULL	ddd	2015-01-01	zh
-NULL	dddd	2015-04-05	jp
-NULL	ddd	2015-04-05	jp
-NULL	ddd	2015-04-05	jp
-NULL	ddd	2015-04-05	jp
-NULL	ddd	2015-04-05	jp
-NULL	dddd	2015-04-05	zh
-NULL	ddd	2015-04-05	zh
-NULL	ddd	2015-04-05	zh
-NULL	ddd	2015-04-05	zh
-NULL	ddd	2015-04-05	zh
-Time taken: 0.469 seconds, Fetched: 15 row(s)
++----------+------------+-------------+---------------+--+
+| logs.ts  | logs.line  |   logs.dt   | logs.country  |
++----------+------------+-------------+---------------+--+
+| 1        | 1          | 2015-04-05  | jp            |
+| 2        | 3          | 2015-04-05  | jp            |
+| 3        | 4          | 2015-04-05  | jp            |
+| NULL     | NULL       | 2015-04-05  | jp            |
+| 1        | 1          | 2015-04-08  | cn            |
+| 2        | 3          | 2015-04-08  | cn            |
+| 3        | 4          | 2015-04-08  | cn            |
+| NULL     | NULL       | 2015-04-08  | cn            |
++----------+------------+-------------+---------------+--+
+8 rows selected (0.091 seconds)
+
 
 ```
 Partition 对应于数据库中的 Partition 列的密集索引，但是 Hive 中 Partition 的组织方式和数据库中的很不相同。在 Hive 中，表中的一个 Partition 对应于表下的一个目录，所有的 Partition 的数据都存储在对应的目录中。
