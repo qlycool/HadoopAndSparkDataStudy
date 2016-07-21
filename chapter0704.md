@@ -3,7 +3,7 @@
 ## 一 创建数据表,导入数据
 首先我们去一个网站下载相关的数据,之后通过hive导入进行实验.[http://grouplens.org/](http://grouplens.org/)
 
-![](chapter10001.png)
+![](images/10/chapter10001.png)
 
 ```
 hive> create table u_data (userid INT, movieid INT, rating INT, unixtime STRING) row format delimited fields terminated by '\t' lines terminated by '\n';
