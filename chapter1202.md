@@ -8,6 +8,7 @@ Apache Phoenix是构建在HBase之上的关系型数据库层，作为内嵌的�
 ![](images/12/phoenix.png)
 ##(2)安装
 **在Master上面的操作**
+
 ```
 #sudo tar xvfz phoenix-4.7.0-HBase-1.1-bin.tar.gz 
 #sudo chown -R hadoop:hadoop phoenix-4.7.0-HBase-1.1
@@ -18,6 +19,7 @@ Apache Phoenix是构建在HBase之上的关系型数据库层，作为内嵌的�
 ```
 
 **在Slave上面的操作**
+
 ```
 #sudo tar xvfz phoenix-4.7.0-HBase-1.1-bin.tar.gz 
 #sudo chown -R hadoop:hadoop phoenix-4.7.0-HBase-1.1
@@ -30,6 +32,7 @@ Apache Phoenix是构建在HBase之上的关系型数据库层，作为内嵌的�
 
 ##(3)基本使用
 ###验证操作
+
 ```
 hadoop@Master:/usr/local/phoenix/bin$ ./sqlline.py localhost
 执行SQL语句
