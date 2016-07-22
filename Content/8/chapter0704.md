@@ -265,42 +265,113 @@ drwxrwxr-x   - hadoop supergroup          0 2016-07-22 11:04 /user/hive/warehous
 
 ## 四 分区表
 
-## 五 外部分区表
+```
+0: jdbc:hive2://hadoopmaster:10000/> create table  u_data_partitioned_table  (userid INT, movieid INT, rating INT, unixtime STRING) partitioned by(day int) row format delimited fields terminated by '\t' lines terminated by '\n';
+OK
+No rows affected (0.256 seconds)
+0: jdbc:hive2://hadoopmaster:10000/> 
 
-## 六 分桶表
+0: jdbc:hive2://hadoopmaster:10000/> LOAD DATA LOCAL INPATH '/home/hadoop/u.data' INTO TABLE u_data_partitioned_table partition(day=20160101);
+Loading data to table default.u_data_partitioned_table partition (day=20160101)
+OK
+No rows affected (0.424 seconds)
+0: jdbc:hive2://hadoopmaster:10000/> 
+
+100,000 rows selected (4.653 seconds)
+0: jdbc:hive2://hadoopmaster:10000/> LOAD DATA LOCAL INPATH '/home/hadoop/u.data' INTO TABLE u_data_partitioned_table partition(day=20160101);
+Loading data to table default.u_data_partitioned_table partition (day=20160101)
+OK
+No rows affected (0.424 seconds)
+0: jdbc:hive2://hadoopmaster:10000/> LOAD DATA LOCAL INPATH '/home/hadoop/u.data' INTO TABLE u_data_partitioned_table partition(day=20160102);
+Loading data to table default.u_data_partitioned_table partition (day=20160102)
+OK
+No rows affected (0.499 seconds)
+0: jdbc:hive2://hadoopmaster:10000/> 
+
+hadoop@hadoopmaster:~$ hdfs dfs -ls /user/hive/warehouse/u_data_partitioned_table
+Found 2 items
+drwxrwxr-x   - hadoop supergroup          0 2016-07-22 13:51 /user/hive/warehouse/u_data_partitioned_table/day=20160101
+drwxrwxr-x   - hadoop supergroup          0 2016-07-22 13:51 /user/hive/warehouse/u_data_partitioned_table/day=20160102
 
 
 ```
 
-
-CSV的导入有点不同
-
-hive> create table ratings (userid INT, movieid INT, rating INT, timestamp STRING) ROW FORMAT DELIMITED FIELDS TERMINATED BY ',';
-
-hive> LOAD DATA LOCAL INPATH '/home/hadoop/ratings.csv' OVERWRITE INTO TABLE ratings;
-
-hive> select * from ratings limit 10;
-OK
-NULL	NULL	NULL	timestamp
-1	169	2	1204927694
-1	2471	3	1204927438
-1	48516	5	1204927435
-2	2571	3	1436165433
-2	109487	4	1436165496
-2	112552	5	1436165496
-2	112556	4	1436165499
-3	356	4	920587155
-3	2394	4	920586920
-Time taken: 0.143 seconds, Fetched: 10 row(s)
-
-hive> desc ratings;
-OK
-userid              	int                 	                    
-movieid             	int                 	                    
-rating              	int                 	                    
-timestamp           	string              	                    
-Time taken: 0.163 seconds, Fetched: 4 row(s)
-
+## 五 分桶表
 
 ```
-##没有想好,想一想继续,反正数据量是有了2000W行了
+0: jdbc:hive2://hadoopmaster:10000/> CREATE TABLE bucketed_data_user (userid INT, movieid INT, rating INT, unixtime STRING) CLUSTERED BY (userid) INTO 4 BUCKETS row format delimited fields terminated by '\t' lines terminated by '\n';
+OK
+No rows affected (0.045 seconds)
+0: jdbc:hive2://hadoopmaster:10000/> 
+
+0: jdbc:hive2://hadoopmaster:10000/> insert overwrite table bucketed_data_user select userid,movieid,rating,unixtime from u_data_partitioned_table;
+WARNING: Hive-on-MR is deprecated in Hive 2 and may not be available in the future versions. Consider using a different execution engine (i.e. tez, spark) or using Hive 1.X releases.
+Query ID = hadoop_20160722140142_c272bc07-b74d-4b5b-9689-0bec2ce71780
+Total jobs = 1
+Launching Job 1 out of 1
+Number of reduce tasks determined at compile time: 4
+In order to change the average load for a reducer (in bytes):
+  set hive.exec.reducers.bytes.per.reducer=<number>
+In order to limit the maximum number of reducers:
+  set hive.exec.reducers.max=<number>
+In order to set a constant number of reducers:
+  set mapreduce.job.reduces=<number>
+Starting Job = job_1468978056881_0010, Tracking URL = http://hadoopmaster:8088/proxy/application_1468978056881_0010/
+Kill Command = /usr/local/hadoop/bin/hadoop job  -kill job_1468978056881_0010
+Hadoop job information for Stage-1: number of mappers: 1; number of reducers: 4
+2016-07-22 14:01:48,774 Stage-1 map = 0%,  reduce = 0%
+2016-07-22 14:01:55,978 Stage-1 map = 100%,  reduce = 0%, Cumulative CPU 1.89 sec
+2016-07-22 14:02:06,236 Stage-1 map = 100%,  reduce = 50%, Cumulative CPU 5.66 sec
+2016-07-22 14:02:07,272 Stage-1 map = 100%,  reduce = 100%, Cumulative CPU 9.43 sec
+MapReduce Total cumulative CPU time: 9 seconds 430 msec
+Ended Job = job_1468978056881_0010
+Loading data to table default.bucketed_data_user
+MapReduce Jobs Launched: 
+Stage-Stage-1: Map: 1  Reduce: 4   Cumulative CPU: 9.43 sec   HDFS Read: 5959693 HDFS Write: 5937879 SUCCESS
+Total MapReduce CPU Time Spent: 9 seconds 430 msec
+OK
+WARNING: Hive-on-MR is deprecated in Hive 2 and may not be available in the future versions. Consider using a different execution engine (i.e. tez, spark) or using Hive 1.X releases.
+No rows affected (26.251 seconds)
+0: jdbc:hive2://hadoopmaster:10000/> 
+
+0: jdbc:hive2://hadoopmaster:10000/> select count(*) from bucketed_data_user ;
+WARNING: Hive-on-MR is deprecated in Hive 2 and may not be available in the future versions. Consider using a different execution engine (i.e. tez, spark) or using Hive 1.X releases.
+Query ID = hadoop_20160722141056_eaf582be-4107-403a-bacd-0a18f567f576
+Total jobs = 1
+Launching Job 1 out of 1
+Number of reduce tasks determined at compile time: 1
+In order to change the average load for a reducer (in bytes):
+  set hive.exec.reducers.bytes.per.reducer=<number>
+In order to limit the maximum number of reducers:
+  set hive.exec.reducers.max=<number>
+In order to set a constant number of reducers:
+  set mapreduce.job.reduces=<number>
+Starting Job = job_1468978056881_0012, Tracking URL = http://hadoopmaster:8088/proxy/application_1468978056881_0012/
+Kill Command = /usr/local/hadoop/bin/hadoop job  -kill job_1468978056881_0012
+Hadoop job information for Stage-1: number of mappers: 1; number of reducers: 1
+2016-07-22 14:11:04,156 Stage-1 map = 0%,  reduce = 0%
+2016-07-22 14:11:09,331 Stage-1 map = 100%,  reduce = 0%, Cumulative CPU 0.94 sec
+2016-07-22 14:11:15,488 Stage-1 map = 100%,  reduce = 100%, Cumulative CPU 1.78 sec
+MapReduce Total cumulative CPU time: 1 seconds 780 msec
+Ended Job = job_1468978056881_0012
+MapReduce Jobs Launched: 
+Stage-Stage-1: Map: 1  Reduce: 1   Cumulative CPU: 1.78 sec   HDFS Read: 5945855 HDFS Write: 106 SUCCESS
+Total MapReduce CPU Time Spent: 1 seconds 780 msec
+OK
+WARNING: Hive-on-MR is deprecated in Hive 2 and may not be available in the future versions. Consider using a different execution engine (i.e. tez, spark) or using Hive 1.X releases.
++---------+--+
+|   c0    |
++---------+--+
+| 300000  |
++---------+--+
+1 row selected (20.397 seconds)
+0: jdbc:hive2://hadoopmaster:10000/> 
+
+hadoop@hadoopmaster:~$ hdfs dfs -ls /user/hive/warehouse/bucketed_data_user
+Found 4 items
+-rwxrwxr-x   2 hadoop supergroup    1400994 2016-07-22 14:02 /user/hive/warehouse/bucketed_data_user/000000_0
+-rwxrwxr-x   2 hadoop supergroup    1493856 2016-07-22 14:02 /user/hive/warehouse/bucketed_data_user/000001_0
+-rwxrwxr-x   2 hadoop supergroup    1566738 2016-07-22 14:02 /user/hive/warehouse/bucketed_data_user/000002_0
+-rwxrwxr-x   2 hadoop supergroup    1475931 2016-07-22 14:02 /user/hive/warehouse/bucketed_data_user/000003_0
+
+```
