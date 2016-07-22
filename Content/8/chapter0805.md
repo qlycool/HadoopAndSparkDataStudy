@@ -82,3 +82,19 @@ Caused by: java.net.URISyntaxException: Relative path in absolute URI: ${system:
 3.将含有"system:java.io.tmpdir"的配置项的值修改为如上地址
 启动hive，成功！
 ```
+
+### hive内存不够用的问题
+
+```
+hive> select * from t_test where ds=20150323 limit 2;
+OK
+Exception in thread "main" java.lang.OutOfMemoryError: Java heap space
+ 
+问题原因： hive堆内存默认为256M
+ 
+这个问题的解决方法为：
+修改/usr/lib/hive/bin/hive-config.sh文件 中
+# Default to use 256MB 
+export HADOOP_HEAPSIZE=${HADOOP_HEAPSIZE:-256}
+将上面256调大就行
+```
