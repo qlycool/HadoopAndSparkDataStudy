@@ -1,14 +1,32 @@
 # Hive综合案例实战
 
-## 一 创建数据表,导入数据
+## 一 数据源的准备工作
+
 首先我们去一个网站下载相关的数据,之后通过hive导入进行实验.[http://grouplens.org/](http://grouplens.org/)
 
 ![](../../images/10/chapter10001.png)
+
+## 二 内部表
+
+###1 创建内部表并载入数据
 
 ```
 hive> create table u_data (userid INT, movieid INT, rating INT, unixtime STRING) row format delimited fields terminated by '\t' lines terminated by '\n';
 
 hive> LOAD DATA LOCAL INPATH '/home/hadoop/u.data' OVERWRITE INTO TABLE u_data;
+```
+
+## 三 外部表
+
+## 四 分区表
+
+## 五 外部分区表
+
+## 六 分桶表
+
+
+```
+
 
 CSV的导入有点不同
 
