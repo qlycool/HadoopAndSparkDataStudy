@@ -20,7 +20,7 @@
     * [5 Hive的存储架构与HQL语法](Content/8/chapter0803.md)
     * [6 Hive的模式设计](Content/8/chapter0808.md)
     * [7 Hive综合案例实战](Content/8/chapter0704.md)
-    * [8 Hive开发](Content/8/chapter0704.md)
+    * [8 Hive开发](Content/8/chapter0809.md)
     * [9 FAQ](Content/8/chapter0805.md)
 * [第六章 Sqoop](Content/9/chapter9.md)
     * [1.Sqoop2的安装](Content/9/chapter0901.md)
