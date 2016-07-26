@@ -10,50 +10,53 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>com.hithinksoft</groupId>
-    <artifactId>HiveDemo</artifactId>
+    <groupId>com.hithinksoft.com</groupId>
+    <artifactId>chu888chu888</artifactId>
     <version>1.0-SNAPSHOT</version>
     <dependencies>
-        <dependency>
-            <groupId>org.apache.hive</groupId>
-            <artifactId>hive-service</artifactId>
-            <version>2.1.0</version>
-        </dependency>
+    <!-- https://mvnrepository.com/artifact/org.apache.hive/hive-jdbc -->
+    <dependency>
+        <groupId>org.apache.hive</groupId>
+        <artifactId>hive-jdbc</artifactId>
+        <version>2.1.0</version>
+    </dependency>
     </dependencies>
-
     <repositories>
         <repository>
             <id>jboss</id>
-            <url>http://repository.jboss.org/nexus/content/repositories/root_repository/maven2/</url>
+            <url>http://maven.aliyun.com/nexus/content/groups/public/</url>
         </repository>
     </repositories>
+
 </project>
+
 ```
 **例子**
 
 ```
-/**
- * Created by chuguangming on 16/7/25.
- */
-import java.sql.Connection;
-importjava.sql.DriverManager;
-import java.sql.ResultSet;
-importjava.sql.PreparedStatement;
-import java.sql.SQLException;
+import java.sql.*;
 
-public class Main {
-    public static void main(String[] args) {
+/**
+ * Created by chuguangming on 16/7/26.
+ */
+public class testHive {
+    /**
+     * @param args
+     * @throws SQLException
+     */
+    public static void main(String[] args) throws ClassNotFoundException {
         Class.forName("org.apache.hive.jdbc.HiveDriver");
         try{
-            Connection con = DriverManager.getConnection("jdbc:hive2://hadoop:10000/default","hive","hive");
-            PreparedStatement sta = con.prepareStatement("select * from t_hive");
+            Connection con = DriverManager.getConnection("jdbc:hive2://hadoopmaster:10000/default","hive","hive");
+            PreparedStatement sta = con.prepareStatement("select * from u_data_partitioned_table");
             ResultSet result = sta.executeQuery();
             while(result.next()){
-                System.out.println(result.getDate(1));
+                System.out.println(result.getString(1));
             }
         } catch(SQLException e) {
             e.printStackTrace();
         }
     }
 }
+
 ```

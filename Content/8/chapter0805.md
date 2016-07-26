@@ -98,3 +98,109 @@ Exception in thread "main" java.lang.OutOfMemoryError: Java heap space
 export HADOOP_HEAPSIZE=${HADOOP_HEAPSIZE:-256}
 将上面256调大就行
 ```
+
+### 用户不对的错误
+编写JDBC客户端程序连接hive时，出现报错：
+
+```
+org.apache.hive.service.cli.HiveSQLException: Failed to open new session: java.lang.RuntimeException: org.apache.hadoop.ipc.RemoteException(org.apache.hadoop.security.authorize.AuthorizationException): User: hadoop is not allowed to impersonate anonymous
+```
+
+具体出错信息
+
+```
+Exception in thread "main" org.apache.hive.service.cli.HiveSQLException: Failed to open new session: java.lang.RuntimeException: org.apache.hadoop.ipc.RemoteException(org.apache.hadoop.security.authorize.AuthorizationException): User: hadoop is not allowed to impersonate anonymous
+    at org.apache.hive.jdbc.Utils.verifySuccess(Utils.java:258)
+    at org.apache.hive.jdbc.Utils.verifySuccess(Utils.java:249)
+    at org.apache.hive.jdbc.HiveConnection.openSession(HiveConnection.java:579)
+    at org.apache.hive.jdbc.HiveConnection.<init>(HiveConnection.java:167)
+    at org.apache.hive.jdbc.HiveDriver.connect(HiveDriver.java:107)
+    at java.sql.DriverManager.getConnection(DriverManager.java:571)
+    at java.sql.DriverManager.getConnection(DriverManager.java:215)
+    at client.main(client.java:21)
+    at sun.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
+    at sun.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:57)
+    at sun.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+    at java.lang.reflect.Method.invoke(Method.java:606)
+    at com.intellij.rt.execution.application.AppMain.main(AppMain.java:140)
+Caused by: org.apache.hive.service.cli.HiveSQLException: Failed to open new session: java.lang.RuntimeException: org.apache.hadoop.ipc.RemoteException(org.apache.hadoop.security.authorize.AuthorizationException): User: hadoop is not allowed to impersonate anonymous
+    at org.apache.hive.service.cli.session.SessionManager.openSession(SessionManager.java:324)
+    at org.apache.hive.service.cli.CLIService.openSessionWithImpersonation(CLIService.java:187)
+    at org.apache.hive.service.cli.thrift.ThriftCLIService.getSessionHandle(ThriftCLIService.java:424)
+    at org.apache.hive.service.cli.thrift.ThriftCLIService.OpenSession(ThriftCLIService.java:318)
+    at org.apache.hive.service.cli.thrift.TCLIService$Processor$OpenSession.getResult(TCLIService.java:1257)
+    at org.apache.hive.service.cli.thrift.TCLIService$Processor$OpenSession.getResult(TCLIService.java:1242)
+    at org.apache.thrift.ProcessFunction.process(ProcessFunction.java:39)
+    at org.apache.thrift.TBaseProcessor.process(TBaseProcessor.java:39)
+    at org.apache.hive.service.auth.TSetIpAddressProcessor.process(TSetIpAddressProcessor.java:56)
+    at org.apache.thrift.server.TThreadPoolServer$WorkerProcess.run(TThreadPoolServer.java:286)
+    at java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1142)
+    at java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:617)
+    at java.lang.Thread.run(Thread.java:745)
+Caused by: java.lang.RuntimeException: java.lang.RuntimeException: org.apache.hadoop.ipc.RemoteException(org.apache.hadoop.security.authorize.AuthorizationException): User: hadoop is not allowed to impersonate anonymous
+    at org.apache.hive.service.cli.session.HiveSessionProxy.invoke(HiveSessionProxy.java:89)
+    at org.apache.hive.service.cli.session.HiveSessionProxy.access$000(HiveSessionProxy.java:36)
+    at org.apache.hive.service.cli.session.HiveSessionProxy$1.run(HiveSessionProxy.java:63)
+    at java.security.AccessController.doPrivileged(Native Method)
+    at javax.security.auth.Subject.doAs(Subject.java:422)
+    at org.apache.hadoop.security.UserGroupInformation.doAs(UserGroupInformation.java:1657)
+    at org.apache.hive.service.cli.session.HiveSessionProxy.invoke(HiveSessionProxy.java:59)
+    at com.sun.proxy.$Proxy35.open(Unknown Source)
+    at org.apache.hive.service.cli.session.SessionManager.openSession(SessionManager.java:315)
+    ... 12 more
+Caused by: java.lang.RuntimeException: org.apache.hadoop.ipc.RemoteException(org.apache.hadoop.security.authorize.AuthorizationException): User: hadoop is not allowed to impersonate anonymous
+    at org.apache.hadoop.hive.ql.session.SessionState.start(SessionState.java:554)
+    at org.apache.hadoop.hive.ql.session.SessionState.start(SessionState.java:489)
+    at org.apache.hive.service.cli.session.HiveSessionImpl.open(HiveSessionImpl.java:156)
+    at sun.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
+    at sun.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:62)
+    at sun.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+    at java.lang.reflect.Method.invoke(Method.java:497)
+    at org.apache.hive.service.cli.session.HiveSessionProxy.invoke(HiveSessionProxy.java:78)
+    ... 20 more
+Caused by: java.lang.RuntimeException: org.apache.hadoop.ipc.RemoteException:User: hadoop is not allowed to impersonate anonymous
+    at org.apache.hadoop.ipc.Client.call(Client.java:1476)
+    at org.apache.hadoop.ipc.Client.call(Client.java:1407)
+    at org.apache.hadoop.ipc.ProtobufRpcEngine$Invoker.invoke(ProtobufRpcEngine.java:229)
+    at com.sun.proxy.$Proxy30.getFileInfo(Unknown Source)
+    at org.apache.hadoop.hdfs.protocolPB.ClientNamenodeProtocolTranslatorPB.getFileInfo(ClientNamenodeProtocolTranslatorPB.java:771)
+    at sun.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
+    at sun.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:62)
+    at sun.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+    at java.lang.reflect.Method.invoke(Method.java:497)
+    at org.apache.hadoop.io.retry.RetryInvocationHandler.invokeMethod(RetryInvocationHandler.java:187)
+    at org.apache.hadoop.io.retry.RetryInvocationHandler.invoke(RetryInvocationHandler.java:102)
+    at com.sun.proxy.$Proxy31.getFileInfo(Unknown Source)
+    at org.apache.hadoop.hdfs.DFSClient.getFileInfo(DFSClient.java:2116)
+    at org.apache.hadoop.hdfs.DistributedFileSystem$22.doCall(DistributedFileSystem.java:1305)
+    at org.apache.hadoop.hdfs.DistributedFileSystem$22.doCall(DistributedFileSystem.java:1301)
+    at org.apache.hadoop.fs.FileSystemLinkResolver.resolve(FileSystemLinkResolver.java:81)
+    at org.apache.hadoop.hdfs.DistributedFileSystem.getFileStatus(DistributedFileSystem.java:1301)
+    at org.apache.hadoop.fs.FileSystem.exists(FileSystem.java:1424)
+    at org.apache.hadoop.hive.ql.session.SessionState.createRootHDFSDir(SessionState.java:639)
+    at org.apache.hadoop.hive.ql.session.SessionState.createSessionDirs(SessionState.java:597)
+    at org.apache.hadoop.hive.ql.session.SessionState.start(SessionState.java:526)
+    ... 27 more
+    
+```
+
+从最终的错误信息来看：User: hadoop is not allowed to impersonate anonymous，意思是用户hadoop不允许伪装成anonymous（hive的默认用户，默认配置可以查看）。
+
+解决方案
+
+```
+<property>
+      <name>hadoop.proxyuser.hadoop.groups</name>
+      <value>hadoop</value>
+      <description>Allow the superuser oozie to impersonate any members of the group group1 and group2</description>
+ </property>
+ 
+ <property>
+      <name>hadoop.proxyuser.hadoop.hosts</name>
+      <value>192.168.21.222,127.0.0.1,localhost</value>
+      <description>The superuser can connect only from host1 and host2 to impersonate a user</description>
+  </property>
+```
+
+
+

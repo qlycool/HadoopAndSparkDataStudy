@@ -1,0 +1,8 @@
+<component name="ArtifactManager">
+  <artifact type="jar" name="HiveUDFDemo:jar">
+    <output-path>$PROJECT_DIR$/out/artifacts/HiveUDFDemo_jar</output-path>
+    <root id="archive" name="HiveUDFDemo.jar">
+      <element id="module-output" name="HiveUDFDemo" />
+    </root>
+  </artifact>
+</component>
